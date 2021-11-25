@@ -20,8 +20,6 @@ function init() {
             buttons[i].onclick = computePercentage;
         } else if (buttons[i].id === "equation") {
             buttons[i].onclick = computation;
-        } else if (buttons[i].id === "change") {
-            buttons[i].onclick = change;
         } else {
             buttons[i].onclick = handleButton;
         }
@@ -153,12 +151,6 @@ function computation() {
 
 function parse(str) {
     return Function(`'use strict'; return (${str})`)()
-}
-
-
-
-function change() {
-
 }
 
 
