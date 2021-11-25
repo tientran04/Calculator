@@ -1,5 +1,5 @@
 body {
-    background-color: rgb(167, 167, 167);
+    background-color: #a7a7a7;
     font: sans-serif;
 }
 
@@ -13,7 +13,6 @@ body {
     padding: 0px;
     margin: 0px;
 }
-
 
 div#display {
     height: 20%;
@@ -66,6 +65,10 @@ button.table-cell {
     border: 1px solid grey;
     width: 25%;
     height: 100%;
+}
+
+button#zero {
+    width: 50%;
 }
 
 button.table-cell:active {
