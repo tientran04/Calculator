@@ -2,7 +2,6 @@ window.onload = init;
 
 let tempComputation = 0; //store computation string
 let computed = false; //indicator for each computation
-let result = 0;
 
 
 function init() {
@@ -119,7 +118,8 @@ function computation() {
     const computationTag = document.getElementById("computation");
     
     let fractionalNumber = getFractionalNumber(tempComputation);
-    
+    let result = 0;
+
     if (fractionalNumber > 0) {
         result = parse(tempComputation).toFixed(fractionalNumber);
     } else {
