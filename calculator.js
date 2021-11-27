@@ -2,12 +2,7 @@ window.onload = init;
 
 let tempComputation = 0; //store computation string
 let computed = false; //indicator for each computation
-let lastButton = ""; //store last button value
-let lastNumber = ""; //store last number to verify decimal point
-let maxDecimalPoint = 0; //store max fraction part to round up to that point
-let currentDecimalPoint = 0; //fraction part of current decimal number
-let decimalPoint = false; //decimal point indicator
-let result = 0;
+
 
 function init() {
     const buttons = document.getElementsByTagName("button");
@@ -20,76 +15,73 @@ function init() {
             buttons[i].onclick = computePercentage;
         } else if (buttons[i].id === "equation") {
             buttons[i].onclick = computation;
+        } else if (buttons[i].id === "decimal-point") {
+            buttons[i].onclick = handleDecimalPoint;
+        } else if (isNaN(buttons[i].value)) {
+            buttons[i].onclick = handleOperators;
         } else {
-            buttons[i].onclick = handleButton;
+            buttons[i].onclick = handleNumbers;
         }
     }
 }
 
 
-function handleButton() {
+function handleNumbers() {
     const computationTag = document.getElementById("computation");
-    const buttonValue = this.getAttribute("value");
+    const buttonValue = this.value;
+    const buttonText = this.textContent;
 
     updateDisplay(buttonValue, computationTag);
-    computed = false;
 
-    if (!isNaN(buttonValue) && tempComputation === 0) {
-        if (buttonValue !== "0") {
-            computationTag.innerHTML = this.textContent;
-            tempComputation = buttonValue;
-        }   
-    } else if (!isNaN(buttonValue) && tempComputation !== 0) {
-        computationTag.innerHTML += this.textContent;
-        tempComputation += buttonValue;
-    } else if (isNaN(buttonValue) && tempComputation === 0) {
-        computationTag.innerHTML += this.textContent;
-        tempComputation += buttonValue;
-    } else if (isNaN(buttonValue) && tempComputation !== 0) {
-        if (buttonValue === ".") {
-            if (lastButton === "." || lastNumber.includes(".")) {}
-            else {
-                computationTag.innerHTML += this.textContent;
-                tempComputation += buttonValue;
-            }            
-        } else if (buttonValue !== ".") {
-            lastNumber = "";
-            if (isNaN(lastButton)) {
-                if (lastButton !== ".") {
-                    computationTag.innerHTML = computationTag.innerHTML.slice(0, -3) + this.textContent;
-                    tempComputation = tempComputation.slice(0, -1) + buttonValue;
-                } else {
-                    computationTag.innerHTML += this.textContent;
-                    tempComputation += buttonValue;
-                }
-            } else {
-                computationTag.innerHTML += this.textContent;
-                tempComputation += buttonValue;
-            }
-        }
-    } 
-    
-    if (decimalPoint === true) {
-        if (!isNaN(buttonValue)){
-            currentDecimalPoint += 1;
+    let lastButtonValue = tempComputation.toString().trimRight().slice(-1);
+
+    if (tempComputation === 0) {
+        computationTag.textContent = buttonText;
+        tempComputation = buttonValue;
+    } else {
+        if (isNaN(lastButtonValue) && lastButtonValue !== ".") {
+            computationTag.textContent += buttonText;
+            tempComputation += buttonValue;
         } else {
-            maxDecimalPoint = Math.max(maxDecimalPoint, currentDecimalPoint);
-            currentDecimalPoint = 0;
-            decimalPoint = false;
-        }
+            computationTag.textContent = computationTag.textContent.trimRight() + buttonText;
+            tempComputation = tempComputation.toString().trimRight() + buttonValue;
+        }      
     }
+}
 
-    maxDecimalPoint = Math.max(maxDecimalPoint, currentDecimalPoint);
 
-    if (buttonValue === ".") {
-        decimalPoint = true;
+function handleOperators () {
+    const computationTag = document.getElementById("computation");
+    const buttonValue = this.value;
+    const buttonText = this.textContent;
+
+    updateDisplay(buttonValue, computationTag);
+
+    let lastButtonValue = tempComputation.toString().trimRight().slice(-1);
+
+    if (isNaN(lastButtonValue) && lastButtonValue !== ".") {
+        computationTag.textContent = computationTag.textContent.trimRight().slice(0, -1) + (" " + buttonText + " ");
+        tempComputation = tempComputation.toString().trimRight().slice(0, -1) + (" " + buttonValue + " ");
+    } else {
+        computationTag.textContent += (" " + buttonText + " ");
+        tempComputation += (" " + buttonValue + " ");
     }
+}
 
-    console.log(decimalPoint, currentDecimalPoint, maxDecimalPoint);
 
+function handleDecimalPoint() {
+    const computationTag = document.getElementById("computation");
+    const buttonValue = this.value;
+    const buttonText = this.textContent;
 
-    lastButton = buttonValue;
-    lastNumber += buttonValue;
+    updateDisplay(buttonValue, computationTag);
+
+    let lastButtonValue = tempComputation.toString().trimRight().slice(-1);
+
+    if (lastButtonValue !== buttonText) {
+        computationTag.textContent += buttonText;
+        tempComputation += buttonValue;
+    }
 }
 
 
@@ -101,11 +93,6 @@ function allClear() {
     computationTag.innerHTML = 0;
     computed = false;  
     tempComputation = 0;
-    lastNumber = "";
-    lastButton = "";
-    maxDecimalPoint = 0;
-    currentDecimalPoint = 0;
-    decimalPoint = false;
 }
 
 
@@ -117,11 +104,6 @@ function del() {
         if (tempComputation.toString().length === 1) {
             computationTag.innerHTML = 0;
             tempComputation = 0;
-            decimalPoint = false;
-            maxDecimalPoint = 0;
-            currentDecimalPoint = 0;
-            lastButton = "";
-            lastNumber = "";
         } else {
             let newComputationText = currentComputationText.trimRight().slice(0, -1);
             computationTag.innerHTML = newComputationText;
@@ -134,18 +116,25 @@ function del() {
 function computation() {
     const answerTag = document.getElementById("answer");
     const computationTag = document.getElementById("computation");
+    
+    let fractionalNumber = getFractionalNumber(tempComputation);
+    let result = 0;
 
-    if (maxDecimalPoint !== 0) {
-        result = parse(tempComputation).toFixed(maxDecimalPoint);
+    if (fractionalNumber > 0) {
+        result = parse(tempComputation).toFixed(fractionalNumber);
     } else {
         result = parse(tempComputation);
     }
 
-    answerTag.innerHTML = computationTag.innerHTML + " = ";
-    computationTag.innerHTML = result;
-
+    if (computed === false) {
+        answerTag.innerHTML = computationTag.innerHTML + " = ";
+        computationTag.innerHTML = result;
+    }
+    
     tempComputation = result;
     computed = true;
+
+    
 }
 
 
@@ -156,9 +145,9 @@ function parse(str) {
 
 function computePercentage() {
     const computationTag = document.getElementById("computation");
-    console.log(lastButton);
-    if (isNaN(lastButton) && lastButton !== '.') {}
-    else {
+    let lastButtonValue = tempComputation.toString().trimRight().slice(-1);
+
+    if (!isNaN(lastButtonValue) || lastButtonValue === '.') {
         computationTag.innerHTML += this.getAttribute("value");
         tempComputation += "/100";
         computation();
@@ -171,9 +160,25 @@ function updateDisplay(buttonValue, computationTag) {
 
     if (computed === true) {
         answerTag.textContent += tempComputation;
+        computed = false;
         if (!isNaN(buttonValue) || buttonValue === ".") {
             tempComputation = 0;
             computationTag.textContent = 0;
         }
     }
+}
+
+
+function getFractionalNumber(tempComputation) {
+    let numbersArray = tempComputation.toString().split(" ");
+    let fractionalNumber = new Array;
+
+    for (let i = 0; i < numbersArray.length; i++) {
+        if (numbersArray[i].includes(".")) {
+            fractionalArray = numbersArray[i].split(".");
+            fractionalNumber.push(parseInt(fractionalArray[1].length));
+        }  
+    }
+
+    return Math.max(...fractionalNumber);
 }
